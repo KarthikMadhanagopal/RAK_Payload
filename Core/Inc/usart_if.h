@@ -107,7 +107,7 @@ void vcom_DMA_TX_IRQHandler(void);
 void vcom_Resume(void);
 
 /* USER CODE BEGIN EFP */
-void vcom_ReceiveInit1(void (*RxCb)(uint8_t *rxChar, uint16_t size));
+void vcom_ReceiveInit1(void (*RxCb)(uint8_t *rxChar, uint16_t size, uint8_t error));
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

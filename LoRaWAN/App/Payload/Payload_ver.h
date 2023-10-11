@@ -29,5 +29,6 @@ typedef struct {
 #define GATE  0x04
 #define FENCE 0x05
 
+void triggerOrch(orch_config_t orch[], uint8_t size);
 
 #endif /* INC_PAYLOAD_VER_H_ */

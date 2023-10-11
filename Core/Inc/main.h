@@ -67,6 +67,12 @@ void Error_Handler(void);
 #define VBAT_MEAS_EN_GPIO_Port GPIOA
 #define GPIO_1_Pin GPIO_PIN_4
 #define GPIO_1_GPIO_Port GPIOA
+#define GPIO_2_Pin GPIO_PIN_5
+#define GPIO_2_GPIO_Port GPIOA
+#define GPIO_3_Pin GPIO_PIN_6
+#define GPIO_3_GPIO_Port GPIOA
+#define GPIO_4_Pin GPIO_PIN_7
+#define GPIO_4_GPIO_Port GPIOA
 #define STATUS_LED_Pin GPIO_PIN_12
 #define STATUS_LED_GPIO_Port GPIOB
 

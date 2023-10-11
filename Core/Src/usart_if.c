@@ -232,71 +232,69 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	/* USER CODE END HAL_UART_TxCpltCallback_2 */
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	/* USER CODE BEGIN HAL_UART_RxCpltCallback_1 */
 
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-//{
-//	/* USER CODE BEGIN HAL_UART_RxCpltCallback_1 */
-//
-//	/* USER CODE END HAL_UART_RxCpltCallback_1 */
-//	if (huart->Instance == USART2)
-//	{
-//		if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
-//		{
-//			RxCpltCallback(&charRx, 1, 0);
-//		}
-//		HAL_UART_Receive_IT(huart, &charRx, 1);
-//		vcom_Trace((uint8_t*)"INTERRUPT\n",strlen("INTERRUPT\n"));
-//	}
-//	/* USER CODE BEGIN HAL_UART_RxCpltCallback_2 */
-//	if (huart->Instance == USART2)
-//	{
-//		if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
-//		{
-//			RxCpltCallback(&charRx, 1, 0);
-//		}
-//		HAL_UART_Receive_IT(huart, &charRx, 1);
-//		vcom_Trace((uint8_t*)"INTERRUPT\n",strlen("INTERRUPT\n"));
-//	}
-//
-//	//  if (huart->Instance == USART1)
-//	//   {
-//	//	  static int arrayTraves = 0;
-//	//	  	static char rxFlag = 0;
-//	//
-//	//	  	char buff[100] = " ";
-//	//
-//	//	  	HAL_UART_Receive_IT (&huart1, uArt1_rxChar, sizeof(uArt1_rxChar));
-//	//
-//	//	  	if( (uArt1_rxChar[0] == '%') && (rxFlag == 0) )
-//	//	  	{
-//	//	  		rxFlag = 1;
-//	//	  	}
-//	//	  	else if((uArt1_rxChar[0] == '%') && (rxFlag == 1))
-//	//	  	{
-//	//	  		memset(uArt3_rxbuffer,0,sizeof(uArt3_rxbuffer));
-//	//	  	}
-//	//
-//	//	  	if( rxFlag == 1 )
-//	//	  	{
-//	//	  		uArt3_rxbuffer[arrayTraves] = uArt1_rxChar[0];
-//	//	  		arrayTraves++;
-//	//
-//	//	  		if( uArt1_rxChar[0] == '#' )
-//	//	  		{
-//	//	  			sprintf(buff,"\r\n uartflag received packet : %s \r\n",uArt3_rxbuffer);
-//	//	  			HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff),10);
-//	//	  			vcom_Trace((uint8_t*)buff,strlen(buff));
-//	//	  			rxFlag = 0;
-//	//	  //			uArtflag = 1;
-//	//	  			arrayTraves = 0;
-//	//	  		}
-//	//	  	}
-//	//   }
-//	/* USER CODE END HAL_UART_RxCpltCallback_2 */
-//}
+	/* USER CODE END HAL_UART_RxCpltCallback_1 */
+	if (huart->Instance == USART2)
+	{
+		if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
+		{
+			RxCpltCallback(&charRx, 1, 0);
+		}
+		HAL_UART_Receive_IT(huart, &charRx, 1);
+	}
+	/* USER CODE BEGIN HAL_UART_RxCpltCallback_2 */
+	if (huart->Instance == USART2)
+	{
+		if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
+		{
+			RxCpltCallback(&charRx, 1, 0);
+		}
+		HAL_UART_Receive_IT(huart, &charRx, 1);
+		vcom_Trace((uint8_t*)"INTERRUPT\n",strlen("INTERRUPT\n"));
+	}
+
+	//  if (huart->Instance == USART1)
+	//   {
+	//	  static int arrayTraves = 0;
+	//	  	static char rxFlag = 0;
+	//
+	//	  	char buff[100] = " ";
+	//
+	//	  	HAL_UART_Receive_IT (&huart1, uArt1_rxChar, sizeof(uArt1_rxChar));
+	//
+	//	  	if( (uArt1_rxChar[0] == '%') && (rxFlag == 0) )
+	//	  	{
+	//	  		rxFlag = 1;
+	//	  	}
+	//	  	else if((uArt1_rxChar[0] == '%') && (rxFlag == 1))
+	//	  	{
+	//	  		memset(uArt3_rxbuffer,0,sizeof(uArt3_rxbuffer));
+	//	  	}
+	//
+	//	  	if( rxFlag == 1 )
+	//	  	{
+	//	  		uArt3_rxbuffer[arrayTraves] = uArt1_rxChar[0];
+	//	  		arrayTraves++;
+	//
+	//	  		if( uArt1_rxChar[0] == '#' )
+	//	  		{
+	//	  			sprintf(buff,"\r\n uartflag received packet : %s \r\n",uArt3_rxbuffer);
+	//	  			HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff),10);
+	//	  			vcom_Trace((uint8_t*)buff,strlen(buff));
+	//	  			rxFlag = 0;
+	//	  //			uArtflag = 1;
+	//	  			arrayTraves = 0;
+	//	  		}
+	//	  	}
+	//   }
+	/* USER CODE END HAL_UART_RxCpltCallback_2 */
+}
 
 /* USER CODE BEGIN EF */
-void vcom_ReceiveInit1(void (*RxCb)(uint8_t *rxChar, uint16_t size))
+void vcom_ReceiveInit1(void (*RxCb)(uint8_t *rxChar, uint16_t size, uint8_t error))
 {
 	/* USER CODE BEGIN vcom_ReceiveInit_1 */
 
@@ -309,22 +307,22 @@ void vcom_ReceiveInit1(void (*RxCb)(uint8_t *rxChar, uint16_t size))
 	/*Set wakeUp event on start bit*/
 	WakeUpSelection.WakeUpEvent = UART_WAKEUP_ON_STARTBIT;
 
-	HAL_UARTEx_StopModeWakeUpSourceConfig(&huart2, WakeUpSelection);
+	HAL_UARTEx_StopModeWakeUpSourceConfig(&huart1, WakeUpSelection);
 
 	/* Make sure that no UART transfer is on-going */
-	while (__HAL_UART_GET_FLAG(&huart2, USART_ISR_BUSY) == SET);
+	while (__HAL_UART_GET_FLAG(&huart1, USART_ISR_BUSY) == SET);
 
 	/* Make sure that UART is ready to receive)   */
-	while (__HAL_UART_GET_FLAG(&huart2, USART_ISR_REACK) == RESET);
+	while (__HAL_UART_GET_FLAG(&huart1, USART_ISR_REACK) == RESET);
 
 	/* Enable USART interrupt */
-	__HAL_UART_ENABLE_IT(&huart2, UART_IT_WUF);
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_WUF);
 
 	/*Enable wakeup from stop mode*/
-	HAL_UARTEx_EnableStopMode(&huart2);
+	HAL_UARTEx_EnableStopMode(&huart1);
 
 	/*Start LPUART receive on IT*/
-	HAL_UART_Receive_IT(&huart2, &charRx, 1);
+	HAL_UART_Receive_IT(&huart1, &charRx, 1);
 
 	return UTIL_ADV_TRACE_OK;
 	/* USER CODE BEGIN vcom_ReceiveInit_2 */

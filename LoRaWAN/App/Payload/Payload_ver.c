@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <sys_app.h>
 
 void triggerOrch(orch_config_t[], uint8_t);
 void opsAccessory(uint8_t, uint8_t, uint8_t, uint8_t);
@@ -36,6 +37,8 @@ orch_config_t orch_config[ORCH_CONFIG_LENGTH] = {
 		// { 12, 2, 2, 0, 6, 0x04, 0, 5 }
 };
 
+uint8_t AckBit = 0;
+
 void swap(orch_config_t *xp, orch_config_t *yp) {
 	orch_config_t temp = *xp;
 	*xp = *yp;
@@ -52,16 +55,24 @@ void bubbleSort(orch_config_t arr[], uint8_t n) {
 uint8_t nextStep = 0;
 uint8_t nextStepCurrent = 0;
 void triggerOrch(orch_config_t orch[], uint8_t size) {
+
+	for(uint8_t loop = 0; loop < ORCH_CONFIG_LENGTH; loop++)
+	{
+		APP_LOG(TS_ON, VLEVEL_M,"\t\tId: %d\t orch_id: %d\tstep: %d\tnext_step : %d\tLocal ID: %d\tAcc. Type: %x\tcondition: %d\tpost_delay : %d\t\n",
+				orch_config[loop].id,orch_config[loop].orch_id,orch_config[loop].step,orch_config[loop].next_step,
+				orch_config[loop].local_id,orch_config[loop].acc_type,orch_config[loop].condition,orch_config[loop].post_delay);
+	}
+
 	for (uint8_t i = 0; i < size; i++) {
 
-		// printf("%d\t%d\n", orch[i].id, orch[i].local_id);
+		APP_LOG(TS_ON, VLEVEL_M,"===============>INSIDE ORCH TRIGGER<=================\r\n");
 
 		if(orch[i].step == 0) {
-			printf("Started orch\n");
+			APP_LOG(TS_ON, VLEVEL_M,"Started orch\n");
 			nextStep = orch[i].next_step;
 		} else {
 			if(orch[i].step == nextStep) {
-				printf("Step: %d", orch[i].step);
+				APP_LOG(TS_ON, VLEVEL_M,"Step: %d\n", orch[i].step);
 
 				opsAccessory(
 						orch[i].local_id,
@@ -69,14 +80,24 @@ void triggerOrch(orch_config_t orch[], uint8_t size) {
 						orch[i].condition,
 						orch[i].post_delay
 				);
+				if(AckBit == 1)
+				{
+					if(orch[i].condition == 0x01){
+						orch[i].condition = 0x11;}
+					else if(orch[i].condition == 0x00){
+						orch[i].condition = 0x10;
+					}
+					AckBit = 0 ;
+				}
 
 				if (orch[i].next_step == 0) {
-					printf("Ended orch\n");
+					APP_LOG(TS_ON, VLEVEL_M,"Ended orch\n");
+					break;
 				} else {
 					nextStepCurrent = orch[i].next_step;
 				}
 			} else {
-				printf("Next step\n");
+				APP_LOG(TS_ON, VLEVEL_M,"Next step\n");
 
 				nextStep = nextStepCurrent;
 				i--;
@@ -86,7 +107,7 @@ void triggerOrch(orch_config_t orch[], uint8_t size) {
 }
 
 void opsAccessory(uint8_t local_id, uint8_t acc_type, uint8_t condition, uint8_t post_delay) {
-	printf("\t\tLocal ID: %d\tAcc. Type: %#x\n", local_id, acc_type);
+	APP_LOG(TS_ON, VLEVEL_M,"\t\tLocal ID: %d\tAcc. Type: %x\n", local_id, acc_type);
 	if(acc_type == MOTOR)
 	{
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, SET);
@@ -97,16 +118,22 @@ void opsAccessory(uint8_t local_id, uint8_t acc_type, uint8_t condition, uint8_t
 		char valveTransmit[10] = "\0";
 		if(condition == 0x01)
 		{
+			APP_LOG(TS_ON, VLEVEL_M,"===============>INSIDE VALVE TRIGGER<=================\r\n");
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, SET);
 			sprintf(valveTransmit,"V%d_on",local_id);
-
+			APP_LOG(TS_ON, VLEVEL_M,"------------->VALVE : %s\n",valveTransmit);
+			AckBit = 1;
 		}
 		else if(condition == 0x00)
 		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, RESET);
 			sprintf(valveTransmit,"V%d_off",local_id);
+			APP_LOG(TS_ON, VLEVEL_M,"------------->VALVE : %s\n",valveTransmit);
+			AckBit = 1;
 		}
 
 	}
-	sleep(post_delay);
+	HAL_Delay(post_delay);
 }
 
 void payloadToOrch(void)
@@ -126,7 +153,7 @@ void payloadToOrch(void)
 	}
 	for(uint8_t loop = 0; loop < ORCH_CONFIG_LENGTH; loop++)
 	{
-		printf("\t\tId: %d\t orch_id: %d\tstep: %d\tnext_step : %d\tLocal ID: %d\tAcc. Type: %#x\tcondition: %d\tpost_delay : %d\t\n",
+		APP_LOG(TS_ON, VLEVEL_M,"\t\tId: %d\t orch_id: %d\tstep: %d\tnext_step : %d\tLocal ID: %d\tAcc. Type: %x\tcondition: %d\tpost_delay : %d\t\n",
 				orch_config[loop].id,orch_config[loop].orch_id,orch_config[loop].step,orch_config[loop].next_step,
 				orch_config[loop].local_id,orch_config[loop].acc_type,orch_config[loop].condition,orch_config[loop].post_delay);
 	}

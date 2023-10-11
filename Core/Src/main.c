@@ -21,12 +21,11 @@
 #include "main.h"
 #include "i2c.h"
 #include "app_lorawan.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +48,7 @@
 /* USER CODE BEGIN PV */
 uint8_t uArt1_rxChar[1] = "0";
 char uArt3_rxbuffer[45] = "0";
+uint8_t uArtflag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,18 +91,16 @@ int main(void)
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_I2C2_Init();
-	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
-	//	MX_USART2_UART_Init();
+	MX_USART1_UART_Init();
 	HAL_UART_Receive_IT (&huart1, uArt1_rxChar, sizeof(uArt1_rxChar));
 	/* USER CODE END 2 */
 
-//	MX_ThreadX_Init();
+	MX_ThreadX_Init();
 
 	/* We should never get here as control is now taken by the scheduler */
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	HAL_UART_Transmit(&huart1,(uint8_t*)"DKD\n", 4, 10);
 	while (1)
 	{
 		/* USER CODE END WHILE */
@@ -161,40 +159,43 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	static int arrayTraves = 0;
-	static char rxFlag = 0;
-
-	char buff[100] = " ";
-
-	HAL_UART_Receive_IT (&huart1, uArt1_rxChar, sizeof(uArt1_rxChar));
-
-	if( (uArt1_rxChar[0] == '%') && (rxFlag == 0) )
-	{
-		rxFlag = 1;
-	}
-	else if((uArt1_rxChar[0] == '%') && (rxFlag == 1))
-	{
-		memset(uArt3_rxbuffer,0,sizeof(uArt3_rxbuffer));
-	}
-
-	if( rxFlag == 1 )
-	{
-		uArt3_rxbuffer[arrayTraves] = uArt1_rxChar[0];
-		arrayTraves++;
-
-		if( uArt1_rxChar[0] == '#' )
-		{
-			sprintf(buff,"\r\n uartflag received packet : %s \r\n",uArt3_rxbuffer);
-			HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff),10);
-			//			vcom_Trace((uint8_t*)"INTERRUPT\n",strlen("INTERRUPT\n"));
-			rxFlag = 0;
-			//			uArtflag = 1;
-			arrayTraves = 0;
-		}
-	}
-}
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//{
+//	static int arrayTraves = 0;
+//	static char rxFlag = 0;
+//
+//	char buff[100] = " ";
+//
+//	HAL_UART_Receive_IT (&huart1, uArt1_rxChar, sizeof(uArt1_rxChar));
+//
+//	if( (uArt1_rxChar[0] == '%') && (rxFlag == 0) )
+//	{
+//		rxFlag = 1;
+//	}
+//	else if((uArt1_rxChar[0] == '%') && (rxFlag == 1))
+//	{
+//		memset(uArt3_rxbuffer,0,sizeof(uArt3_rxbuffer));
+//	}
+//
+////	sprintf(buff,"\r\n Character : %c \r\n",uArt1_rxChar[0]);
+////	HAL_UART_Transmit(&huart2, (uint8_t*)buff, strlen(buff),10);
+//
+//	if( rxFlag == 1 )
+//	{
+//		uArt3_rxbuffer[arrayTraves] = uArt1_rxChar[0];
+//		arrayTraves++;
+//
+//		if( uArt1_rxChar[0] == '#' )
+//		{
+////			sprintf(buff,"\r\n uartflag received packet : %s \r\n",uArt3_rxbuffer);
+////			HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff),10);
+//			//			vcom_Trace((uint8_t*)"INTERRUPT\n",strlen("INTERRUPT\n"));
+//			rxFlag = 0;
+//			uArtflag = 1;
+//			arrayTraves = 0;
+//		}
+//	}
+//}
 /* USER CODE END 4 */
 
 /**

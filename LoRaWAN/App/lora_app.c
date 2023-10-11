@@ -52,7 +52,9 @@ extern  TX_BYTE_POOL *byte_pool;
 extern  CHAR *pointer;
 /* USER CODE BEGIN EV */
 uint8_t Buffer[25] = {0};
-extern uint8_t uArt1_rxChar[1];
+//
+//uint8_t uArt1_rxChar[1] = "0";
+//char uArt3_rxbuffer[45] = "0";
 uint8_t Space[]         = " \r\n";
 uint8_t StartMSG[]      = "Starting I2C Scanning: \r\n";
 uint8_t EndMSG[]        = "Done! \r\n\r\n";
@@ -272,6 +274,11 @@ static void OnRxTimerLedEvent(void *context);
  */
 static void OnJoinTimerLedEvent(void *context);
 
+/**
+ * @brief  Group-Orch Acknowldgent function
+ * @param  context ptr of LED context
+ */
+void AcKnowledgementTxData(void);
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -540,10 +547,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 #endif
 
+
 /* USER CODE END PB_Callbacks */
 
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
+void myRxCallback(uint8_t *rxChar, uint16_t size) {
+	APP_LOG(TS_OFF, VLEVEL_M, "Received data of size %u: ", size);
+	for (uint16_t i = 0; i < size; i++) {
+		APP_LOG(TS_OFF, VLEVEL_M, "%c", rxChar[i]); // Assuming the data is ASCII characters
+	}
+	APP_LOG(TS_OFF, VLEVEL_M, "\n");
+}
 
 /* USER CODE END PrFD */
 
@@ -557,7 +572,7 @@ void App_Main_Thread_Entry(unsigned long thread_input)
 	SystemApp_Init();
 	LoRaWAN_Init();
 	/* USER CODE BEGIN App_Main_Thread_Entry_2 */
-//	vcom_ReceiveInit((void*)HAL_UART_RxCpltCallback);
+	vcom_ReceiveInit((void*)myRxCallback);
 	/* USER CODE END App_Main_Thread_Entry_2 */
 
 	/* Infinite loop */
@@ -567,8 +582,6 @@ void App_Main_Thread_Entry(unsigned long thread_input)
 		SendTxData();
 		/*do what you want*/
 		/* USER CODE BEGIN App_Main_Thread_Entry_Loop */
-		//		MX_USART1_UART_Init();
-		//		HAL_UART_MspInit(&huart1);
 		HAL_UART_Transmit(&huart1, (uint8_t*)"Hello in main \n", 16,10);
 		/* USER CODE END App_Main_Thread_Entry_Loop */
 	}
@@ -728,26 +741,9 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 								orch_config[loop].condition = appData->Buffer[arrayTraves++];
 								orch_config[loop].post_delay = appData->Buffer[arrayTraves++];
 							}
-							for(uint8_t loop = 0; loop < ORCH_CONFIG_LENGTH; loop++)
-							{
-								APP_LOG(TS_OFF, VLEVEL_M, "\t\tId: %d\t orch_id: %d\tstep: %d\tnext_step : %d\tLocal ID: %d\tAcc. Type: %x\tcondition: %d\tpost_delay : %d\t\n",
-										orch_config[loop].id,orch_config[loop].orch_id,orch_config[loop].step,orch_config[loop].next_step,
-										orch_config[loop].local_id,orch_config[loop].acc_type,orch_config[loop].condition,orch_config[loop].post_delay);
-							}
-							HAL_Delay(1000);
 
-							LmHandlerSend(appData, LmHandlerParams.IsTxConfirmed, false);
-							//							AppLedStateOn = appData->Buffer[0] & 0x01;
-							//							if (AppLedStateOn == RESET)
-							//							{
-							//								APP_LOG(TS_OFF, VLEVEL_M, "LED OFF\r\n");
-							//								//                  HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
-							//							}
-							//							else
-							//							{
-							//								APP_LOG(TS_OFF, VLEVEL_M, "LED ON\r\n");
-							//								//                  HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); /* LED_RED */
-							//							}
+							triggerOrch(orch_config,ORCH_CONFIG_LENGTH);//ACTION Trigger Function
+							AcKnowledgementTxData();
 						}
 						break;
 
@@ -804,8 +800,6 @@ static void SendTxData(void)
 
 		//		  Sensing the data from SHt20
 		SensorDataRead();
-
-		AppData.Port = LORAWAN_USER_APP_PORT;
 
 #ifdef CAYENNE_LPP
 		CayenneLppReset();
@@ -923,6 +917,34 @@ static void OnJoinTimerLedEvent(void *context)
 	//  HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); /* LED_RED */
 }
 
+void AcKnowledgementTxData(void)
+{
+	uint8_t arrayTraves = 0;
+	AppData.Port = LORAWAN_USER_APP_PORT;
+
+	AppData.Buffer[arrayTraves++] = 0x01;
+	for(uint8_t loop = 0; loop < ORCH_CONFIG_LENGTH; loop++)
+	{
+		AppData.Buffer[arrayTraves++] = orch_config[loop].id;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].orch_id;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].step;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].next_step;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].local_id;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].acc_type;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].condition;
+		AppData.Buffer[arrayTraves++] = orch_config[loop].post_delay;
+	}
+
+	for(uint8_t loop = 0; loop < ORCH_CONFIG_LENGTH; loop++)
+	{
+		APP_LOG(TS_OFF, VLEVEL_M, "\t\tId: %d\t orch_id: %d\tstep: %d\tnext_step : %d\tLocal ID: %d\tAcc. Type: %x\tcondition: %d\tpost_delay : %d\t\n",
+				orch_config[loop].id,orch_config[loop].orch_id,orch_config[loop].step,orch_config[loop].next_step,
+				orch_config[loop].local_id,orch_config[loop].acc_type,orch_config[loop].condition,orch_config[loop].post_delay);
+	}
+	HAL_Delay(1000);
+	AppData.BufferSize = arrayTraves;
+	LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+}
 /* USER CODE END PrFD_LedEvents */
 
 static void OnTxData(LmHandlerTxParams_t *params)
